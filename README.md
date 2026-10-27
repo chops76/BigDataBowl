@@ -25,6 +25,8 @@ when it isn't present.
 
 ## Common commands
 
+To start the data viewer: `python -m databowl.viewer`
+
 | Command       | What it does                      |
 |---------------|-----------------------------------|
 | `make test`   | Run tests with coverage           |
