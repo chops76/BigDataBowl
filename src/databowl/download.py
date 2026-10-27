@@ -1,13 +1,6 @@
 """Download the Kaggle competition data into data/raw.
 
-Usage:
-    download-data            # or: python -m my_project.download
-    download-data --force    # re-download even if data/raw is non-empty
-
-Authentication is handled by the `kaggle` CLI. It reads credentials from, in
-order: environment variables (KAGGLE_API_TOKEN, or the older KAGGLE_USERNAME +
-KAGGLE_KEY), or ~/.kaggle/kaggle.json. You must also have joined the competition
-and accepted its rules on kaggle.com, or the download fails with a 403.
+See README.md for more
 """
 
 from __future__ import annotations
@@ -21,14 +14,8 @@ from pathlib import Path
 COMPETITION = "nfl-big-data-bowl-2027"
 RAW_DIR = Path(__file__).resolve().parents[2] / "data" / "raw"
 
-HELP = f"""
-Kaggle download failed. Common causes:
-  401 Unauthorized -> credentials missing/invalid. Create a token at
-                      https://www.kaggle.com/settings and either set the
-                      KAGGLE_API_TOKEN env var or save ~/.kaggle/kaggle.json
-                      (chmod 600).
-  403 Forbidden    -> you haven't joined the competition / accepted its rules:
-                      https://www.kaggle.com/competitions/{COMPETITION}/rules
+HELP = """
+Kaggle download failed. Check credentials and competition membership.
 """
 
 
@@ -40,7 +27,7 @@ def has_data(raw_dir: Path = RAW_DIR) -> bool:
 
 
 def download(competition: str = COMPETITION, dest: Path = RAW_DIR, force: bool = False) -> Path:
-    """Download and unzip the competition files into `dest` (idempotent)."""
+    """Download and unzip the competition files into `dest`."""
     dest.mkdir(parents=True, exist_ok=True)
     if has_data(dest) and not force:
         print(f"{dest} already has data; skipping (use --force to re-download).")
