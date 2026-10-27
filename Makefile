@@ -20,7 +20,7 @@ data:
 	python -m databowl.download
 
 test-data:
-	pytest -m data
+	pytest -m data --no-cov
 
 clean:
 	rm -rf .pytest_cache .ruff_cache .coverage coverage.xml htmlcov
