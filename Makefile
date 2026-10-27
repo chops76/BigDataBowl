@@ -1,4 +1,4 @@
-.PHONY: install lint format test clean
+.PHONY: install lint format test data test-data clean
 
 install:
 	pip install -e ".[dev]"
@@ -14,6 +14,13 @@ format:
 
 test:
 	pytest
+
+data:
+	pip install -e ".[data]"
+	python -m databowl.download
+
+test-data:
+	pytest -m data --no-cov
 
 clean:
 	rm -rf .pytest_cache .ruff_cache .coverage coverage.xml htmlcov
