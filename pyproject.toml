@@ -30,9 +30,13 @@ dev = [
 
 [project.scripts]
 download-data = "databowl.download:main"
+combine-viewer = "databowl.viewer:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+
+[tool.setuptools.package-data]
+databowl = ["templates/*.html"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

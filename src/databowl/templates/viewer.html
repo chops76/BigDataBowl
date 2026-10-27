@@ -1,0 +1,1314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NFL Combine Route Viewer</title>
+  <style>
+    :root {
+      --bg: #0b1120;
+      --card: #1e293b;
+      --card-border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #22c55e;
+      --accent-hover: #16a34a;
+      --turf-base: #1b4d27;
+      --turf-stripe: #225e31;
+      --turf-endzone: #13381c;
+      --white: #ffffff;
+      --ball: #fb923c;
+      --player-run: #0284c7;
+      --danger: #ef4444;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    header {
+      background: #0f172a;
+      border-bottom: 1px solid var(--card-border);
+      padding: 12px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .brand-icon {
+      font-size: 24px;
+    }
+    .brand-title {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand-sub {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .header-actions {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .btn {
+      background: #334155;
+      color: var(--text);
+      border: 1px solid #475569;
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .btn:hover { background: #475569; }
+    .btn-primary {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #052e16;
+      font-weight: 600;
+    }
+    .btn-primary:hover { background: var(--accent-hover); }
+    .btn-active {
+      background: #0284c7;
+      border-color: #38bdf8;
+      color: #fff;
+    }
+    .app-container {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding: 16px 24px;
+      max-width: 1500px;
+      width: 100%;
+      margin: 0 auto;
+      flex: 1;
+    }
+    .filters-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      align-items: flex-end;
+    }
+    .filter-group {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      flex: 1 1 140px;
+      min-width: 130px;
+    }
+    .filter-group label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    select, input {
+      background: #0f172a;
+      border: 1px solid #334155;
+      color: var(--text);
+      padding: 7px 10px;
+      border-radius: 6px;
+      font-size: 13px;
+      outline: none;
+      width: 100%;
+    }
+    select:focus, input:focus {
+      border-color: var(--accent);
+    }
+    .filter-checkbox {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      height: 34px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      color: #fed7aa;
+      user-select: none;
+    }
+    .filter-checkbox input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: #f97316;
+      cursor: pointer;
+    }
+    .nav-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .nav-buttons {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+    .nav-status {
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+    .metadata-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 14px 18px;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 14px;
+    }
+    .meta-item {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .meta-label {
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .meta-value {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+    }
+    .meta-highlight {
+      color: #4ade80;
+    }
+    .badge-ball {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 600;
+      background: #7c2d12;
+      color: #ffedd5;
+      border: 1px solid #ea580c;
+    }
+    .badge-no-ball {
+      display: inline-flex;
+      padding: 2px 8px;
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 500;
+      background: #1e293b;
+      color: var(--text-muted);
+    }
+    .field-card {
+      background: var(--card);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+    .field-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .field-title {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .field-legend {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 12px;
+      color: var(--text-muted);
+      flex-wrap: wrap;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .legend-color {
+      width: 14px;
+      height: 4px;
+      border-radius: 2px;
+    }
+    .legend-dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+    }
+    .playback-toolbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: #0f172a;
+      border: 1px solid var(--card-border);
+      border-radius: 8px;
+      padding: 8px 14px;
+      flex-wrap: wrap;
+    }
+    .playback-controls {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .scrubber-container {
+      flex: 1;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 180px;
+    }
+    .scrubber {
+      flex: 1;
+      height: 6px;
+      accent-color: #38bdf8;
+      cursor: pointer;
+    }
+    .time-display {
+      font-family: monospace;
+      font-size: 12px;
+      color: #93c5fd;
+      font-weight: 600;
+      min-width: 90px;
+    }
+    .speed-buttons {
+      display: flex;
+      gap: 4px;
+    }
+    .btn-speed {
+      padding: 3px 8px;
+      font-size: 11px;
+      background: #1e293b;
+      border: 1px solid #475569;
+      color: var(--text-muted);
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    .btn-speed.active {
+      background: #0284c7;
+      color: #fff;
+      border-color: #38bdf8;
+      font-weight: 600;
+    }
+    .canvas-container {
+      position: relative;
+      width: 100%;
+      background: #09130d;
+      border-radius: 8px;
+      overflow: hidden;
+      border: 1px solid #163e1e;
+      box-shadow: inset 0 2px 8px rgba(0,0,0,0.5);
+    }
+    canvas {
+      display: block;
+      width: 100%;
+      cursor: crosshair;
+    }
+    .tooltip {
+      position: absolute;
+      pointer-events: none;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid #475569;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 6px;
+      font-size: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+      display: none;
+      z-index: 20;
+      line-height: 1.4;
+    }
+    .live-hud {
+      display: flex;
+      gap: 14px;
+      font-size: 12px;
+      color: #cbd5e1;
+      margin-left: auto;
+      font-family: monospace;
+    }
+    .shortcut-hints {
+      display: flex;
+      gap: 12px;
+      font-size: 11px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+    kbd {
+      background: #334155;
+      color: #e2e8f0;
+      padding: 1px 5px;
+      border-radius: 3px;
+      font-family: inherit;
+      font-size: 10px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <span class="brand-icon">🏈</span>
+      <div>
+        <div class="brand-title">NFL Combine Route Viewer</div>
+        <div class="brand-sub">Optical Tracking Exploration • Big Data Bowl</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button id="btn-export-png" class="btn" title="Save current route view as high-resolution PNG">
+        📷 Save PNG
+      </button>
+      <button id="btn-random" class="btn" title="Pick a random attempt">
+        🎲 Random Route
+      </button>
+    </div>
+  </header>
+
+  <main class="app-container">
+    <section class="filters-card">
+      <div class="filter-group">
+        <label for="filter-year">Draft Year</label>
+        <select id="filter-year">
+          <option value="">All Years</option>
+        </select>
+      </div>
+
+      <div class="filter-group" style="flex: 1.5 1 180px;">
+        <label for="filter-drill-type">Drill Category</label>
+        <select id="filter-drill-type">
+          <option value="">All Categories</option>
+        </select>
+      </div>
+
+      <div class="filter-group" style="flex: 2 1 240px;">
+        <label for="filter-drill-name">Drill Name</label>
+        <select id="filter-drill-name">
+          <option value="">All Drills</option>
+        </select>
+      </div>
+
+      <div class="filter-group" style="flex: 1.5 1 200px;">
+        <label for="filter-player">Player / ID</label>
+        <select id="filter-player">
+          <option value="">All Players</option>
+        </select>
+      </div>
+
+      <div class="filter-group" style="flex: 0.8 1 90px;">
+        <label for="filter-attempt">Attempt</label>
+        <select id="filter-attempt">
+          <option value="">All</option>
+        </select>
+      </div>
+
+      <div class="filter-group" style="flex: 1 1 150px; justify-content: flex-end;">
+        <label class="filter-checkbox" title="Filter to only attempts where the ball was tracked">
+          <input type="checkbox" id="filter-only-ball">
+          <span>🏈 Only Ball Drills</span>
+        </label>
+      </div>
+    </section>
+
+    <div class="nav-bar">
+      <div class="nav-buttons">
+        <button id="btn-prev" class="btn" title="Previous Attempt (Left Arrow)">◀ Prev Attempt</button>
+        <button id="btn-next" class="btn" title="Next Attempt (Right Arrow)">Next Attempt ▶</button>
+        <span id="nav-count" class="nav-status">Loading attempts...</span>
+      </div>
+    </div>
+
+    <section class="metadata-card" id="metadata-panel">
+      <div class="meta-item">
+        <span class="meta-label">Drill Name</span>
+        <span class="meta-value meta-highlight" id="meta-drill">-</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Draft Year</span>
+        <span class="meta-value" id="meta-year">-</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Player ID</span>
+        <span class="meta-value" id="meta-player">-</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Attempt #</span>
+        <span class="meta-value" id="meta-attempt">-</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Ball Tracking</span>
+        <span class="meta-value" id="meta-ball">-</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Route Distance</span>
+        <span class="meta-value" id="meta-distance">-</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Peak Speed</span>
+        <span class="meta-value" id="meta-speed">-</span>
+      </div>
+      <div class="meta-item">
+        <span class="meta-label">Duration</span>
+        <span class="meta-value" id="meta-duration">-</span>
+      </div>
+    </section>
+
+    <section class="field-card">
+      <div class="field-header">
+        <div class="field-title">
+          <span>Route Map</span>
+          <span style="font-size: 12px; font-weight: normal; color: var(--text-muted);" id="field-subtitle"></span>
+        </div>
+        <div class="field-legend">
+          <div class="legend-item">
+            <span class="legend-color" style="background: var(--white); height: 3px;"></span>
+            <span>Player Route</span>
+          </div>
+          <div class="legend-item" id="legend-ball-item" style="display: none;">
+            <span class="legend-color" style="background: var(--ball); border-top: 1px dashed var(--ball); height: 3px;"></span>
+            <span style="display: inline-flex; align-items: center; gap: 4px; color: #fed7aa; font-weight: 600;">
+              <span style="font-size: 15px;">🏈</span> Ball Trajectory
+            </span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: var(--accent); border: 2px solid #fff;"></span>
+            <span>Start</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: var(--danger); border: 2px solid #fff;"></span>
+            <span>Finish</span>
+          </div>
+          <div class="legend-item">
+            <span class="legend-dot" style="background: var(--player-run); border: 2px solid #fff; box-shadow: 0 0 6px #38bdf8;"></span>
+            <span style="color: #38bdf8; font-weight: 600;">Player (Real-Time)</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Real-Time Animation Playback Bar -->
+      <div class="playback-toolbar">
+        <div class="playback-controls">
+          <button id="btn-play-pause" class="btn btn-primary" title="Play / Pause (Spacebar)">
+            ⏸ Pause
+          </button>
+          <button id="btn-restart" class="btn" title="Restart route animation">
+            ↺ Restart
+          </button>
+        </div>
+
+        <div class="scrubber-container">
+          <input type="range" id="anim-scrubber" class="scrubber" min="0" max="1000" value="0" step="1">
+          <span id="anim-time-display" class="time-display">0.0s / 0.0s</span>
+        </div>
+
+        <div class="speed-buttons">
+          <button class="btn-speed" data-speed="0.5">0.5x</button>
+          <button class="btn-speed active" data-speed="1.0">1.0x</button>
+          <button class="btn-speed" data-speed="1.5">1.5x</button>
+          <button class="btn-speed" data-speed="2.0">2.0x</button>
+        </div>
+
+        <div class="live-hud" id="anim-live-hud">
+          <span id="hud-speed">Speed: 0.0 yd/s</span>
+          <span id="hud-accel">Accel: 0.0 yd/s²</span>
+        </div>
+      </div>
+
+      <div class="canvas-container">
+        <canvas id="field-canvas" width="1200" height="600"></canvas>
+        <div id="hover-tooltip" class="tooltip"></div>
+      </div>
+
+      <div class="shortcut-hints">
+        <span>Shortcuts:</span>
+        <span><kbd>Space</kbd> Play/Pause</span>
+        <span><kbd>←</kbd> / <kbd>→</kbd> Prev/Next Attempt</span>
+        <span><kbd>R</kbd> Random</span>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    let options = {};
+    let events = [];
+    let currentEventIndex = 0;
+    let currentRouteData = null;
+    let hoveredPoint = null;
+
+    // Animation state
+    let isPlaying = true;
+    let animSpeed = 1.0;
+    let animElapsedSec = 0;
+    let totalDurationSec = 0;
+    let lastTimestamp = 0;
+    let loopPauseTimer = 0;
+    const LOOP_PAUSE_DURATION = 0.6; // pause 0.6s at finish before repeating
+
+    const canvas = document.getElementById('field-canvas');
+    const ctx = canvas.getContext('2d');
+    const tooltip = document.getElementById('hover-tooltip');
+
+    async function init() {
+      try {
+        const resp = await fetch('/api/options');
+        options = await resp.json();
+        populateFilterDropdowns();
+        await loadEvents();
+      } catch (err) {
+        console.error('Failed to initialize options:', err);
+      }
+      requestAnimationFrame(animationLoop);
+    }
+
+    function populateFilterDropdowns() {
+      // Years
+      const yearSelect = document.getElementById('filter-year');
+      options.years.forEach(y => {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        yearSelect.appendChild(opt);
+      });
+
+      // Drill Types
+      const typeSelect = document.getElementById('filter-drill-type');
+      options.drill_types.forEach(t => {
+        const opt = document.createElement('option');
+        opt.value = t;
+        opt.textContent = t.replace(/_/g, ' ');
+        typeSelect.appendChild(opt);
+      });
+
+      // Players
+      const playerSelect = document.getElementById('filter-player');
+      options.players.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.nfl_id;
+        const info = [p.display_name, p.position, p.college].filter(Boolean).join(' • ');
+        opt.textContent = info ? `${p.nfl_id} - ${info}` : `ID: ${p.nfl_id}`;
+        playerSelect.appendChild(opt);
+      });
+
+      updateDrillNames();
+    }
+
+    function updateDrillNames() {
+      const typeSelect = document.getElementById('filter-drill-type');
+      const nameSelect = document.getElementById('filter-drill-name');
+      const selType = typeSelect.value;
+      const onlyBall = document.getElementById('filter-only-ball').checked;
+
+      nameSelect.innerHTML = '<option value="">All Drills</option>';
+      let drills = selType && options.drills_by_type[selType]
+        ? options.drills_by_type[selType]
+        : options.all_drills;
+
+      const ballDrillsSet = new Set(options.drills_with_ball || []);
+
+      if (drills) {
+        drills.forEach(d => {
+          const hasBall = ballDrillsSet.has(d);
+          if (onlyBall && !hasBall) return;
+
+          const opt = document.createElement('option');
+          opt.value = d;
+          opt.textContent = hasBall ? `🏈 ${d.replace(/_/g, ' ')}` : d.replace(/_/g, ' ');
+          nameSelect.appendChild(opt);
+        });
+      }
+    }
+
+    async function loadEvents() {
+      const year = document.getElementById('filter-year').value;
+      const drillType = document.getElementById('filter-drill-type').value;
+      const drillName = document.getElementById('filter-drill-name').value;
+      const nflId = document.getElementById('filter-player').value;
+      const attempt = document.getElementById('filter-attempt').value;
+      const onlyBall = document.getElementById('filter-only-ball').checked;
+
+      const params = new URLSearchParams();
+      if (year) params.append('year', year);
+      if (drillType) params.append('drill_type', drillType);
+      if (drillName) params.append('drill_name', drillName);
+      if (nflId) params.append('nfl_id', nflId);
+      if (attempt) params.append('attempt', attempt);
+      if (onlyBall) params.append('has_ball', 'true');
+
+      document.getElementById('nav-count').textContent = 'Searching attempts...';
+      const resp = await fetch(`/api/events?${params.toString()}`);
+      events = await resp.json();
+
+      // Populate attempt numbers
+      const attemptSelect = document.getElementById('filter-attempt');
+      const curAtt = attemptSelect.value;
+      const uniqueAttempts = Array.from(new Set(events.map(e => e.attempt))).sort((a,b)=>a-b);
+      attemptSelect.innerHTML = '<option value="">All</option>';
+      uniqueAttempts.forEach(a => {
+        const opt = document.createElement('option');
+        opt.value = a;
+        opt.textContent = `Attempt ${a}`;
+        if (String(a) === String(curAtt)) opt.selected = true;
+        attemptSelect.appendChild(opt);
+      });
+
+      currentEventIndex = 0;
+      updateNavDisplay();
+      if (events.length > 0) {
+        await loadCurrentRoute();
+      } else {
+        clearDisplay();
+      }
+    }
+
+    function updateNavDisplay() {
+      const countEl = document.getElementById('nav-count');
+      if (events.length === 0) {
+        countEl.textContent = 'No matching attempts found';
+      } else {
+        const cur = events[currentEventIndex];
+        const ballTag = cur && cur.has_ball ? ' • 🏈 Ball Tracked' : '';
+        countEl.textContent = `Attempt ${currentEventIndex + 1} of ${events.length.toLocaleString()}${ballTag}`;
+      }
+      document.getElementById('btn-prev').disabled = currentEventIndex <= 0;
+      document.getElementById('btn-next').disabled = currentEventIndex >= events.length - 1;
+    }
+
+    async function loadCurrentRoute() {
+      if (!events || events.length === 0) return;
+      const ev = events[currentEventIndex];
+      const resp = await fetch(`/api/route?event_id=${encodeURIComponent(ev.event_id)}`);
+      currentRouteData = await resp.json();
+
+      // Separate player and ball points
+      currentRouteData.playerPoints = currentRouteData.points.filter(p => p.e === 'PLAYER');
+      currentRouteData.ballPoints = currentRouteData.points.filter(p => p.e === 'BALL');
+
+      const primary = currentRouteData.playerPoints.length > 0
+        ? currentRouteData.playerPoints
+        : currentRouteData.points;
+
+      totalDurationSec = Math.max((primary.length - 1) * 0.1, 0.1);
+      animElapsedSec = 0;
+      loopPauseTimer = 0;
+
+      updateMetadata(currentRouteData);
+    }
+
+    function clearDisplay() {
+      currentRouteData = null;
+      document.getElementById('meta-drill').textContent = 'None';
+      document.getElementById('meta-year').textContent = '-';
+      document.getElementById('meta-player').textContent = '-';
+      document.getElementById('meta-attempt').textContent = '-';
+      document.getElementById('meta-ball').innerHTML = '<span class="badge-no-ball">None</span>';
+      document.getElementById('meta-distance').textContent = '-';
+      document.getElementById('meta-speed').textContent = '-';
+      document.getElementById('meta-duration').textContent = '-';
+      document.getElementById('legend-ball-item').style.display = 'none';
+      renderEmptyField();
+    }
+
+    function updateMetadata(data) {
+      document.getElementById('meta-drill').textContent = data.drill_name || '-';
+      document.getElementById('meta-year').textContent = data.draft_year || '-';
+
+      const playerStr = data.player_name
+        ? `${data.nfl_id} (${data.player_name}${data.position ? ', ' + data.position : ''})`
+        : String(data.nfl_id || '-');
+      document.getElementById('meta-player').textContent = playerStr;
+
+      document.getElementById('meta-attempt').textContent = `Attempt ${data.attempt}`;
+
+      // Ball badge
+      const ballContainer = document.getElementById('meta-ball');
+      const ballLegend = document.getElementById('legend-ball-item');
+      if (data.has_ball && data.ballPoints.length > 0) {
+        ballContainer.innerHTML = `<span class="badge-ball">🏈 Tracked (${data.ballPoints.length} frames)</span>`;
+        ballLegend.style.display = 'flex';
+      } else {
+        ballContainer.innerHTML = '<span class="badge-no-ball">None</span>';
+        ballLegend.style.display = 'none';
+      }
+
+      document.getElementById('meta-distance').textContent = `${data.stats.total_dist.toFixed(1)} yds`;
+      const mph = (data.stats.max_speed * 2.04545).toFixed(1);
+      document.getElementById('meta-speed').textContent = `${data.stats.max_speed.toFixed(1)} yd/s (${mph} mph)`;
+      document.getElementById('meta-duration').textContent = `${data.stats.duration_sec.toFixed(1)}s (${data.stats.num_frames} frames)`;
+      document.getElementById('field-subtitle').textContent = `${data.drill_type || ''} • Attempt ${data.attempt}`;
+    }
+
+    function computeBounds(playerPoints, ballPoints, padding = 6.0) {
+      let allPoints = [];
+      if (playerPoints && playerPoints.length > 0) allPoints = allPoints.concat(playerPoints);
+      if (ballPoints && ballPoints.length > 0) allPoints = allPoints.concat(ballPoints);
+
+      if (allPoints.length === 0) {
+        return { xMin: 0, xMax: 120, yMin: 0, yMax: 53.33 };
+      }
+
+      let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+      allPoints.forEach(p => {
+        if (p.x < minX) minX = p.x;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.y > maxY) maxY = p.y;
+      });
+
+      minX -= padding;
+      maxX += padding;
+      minY -= padding;
+      maxY += padding;
+
+      if ((maxX - minX) < 16) {
+        const midX = (minX + maxX) / 2;
+        minX = midX - 8;
+        maxX = midX + 8;
+      }
+      if ((maxY - minY) < 14) {
+        const midY = (minY + maxY) / 2;
+        minY = midY - 7;
+        maxY = midY + 7;
+      }
+
+      return { xMin: minX, xMax: maxX, yMin: minY, yMax: maxY };
+    }
+
+    function renderEmptyField() {
+      const w = canvas.width;
+      const h = canvas.height;
+      ctx.fillStyle = '#1b4d27';
+      ctx.fillRect(0, 0, w, h);
+      ctx.fillStyle = '#94a3b8';
+      ctx.font = '16px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('No route selected', w / 2, h / 2);
+    }
+
+    // Interpolate entity position at given elapsed seconds
+    function interpolatePosition(points, elapsedSec) {
+      if (!points || points.length === 0) return null;
+      if (points.length === 1) return { ...points[0] };
+
+      const totalPoints = points.length;
+      const frameIdxFloat = elapsedSec / 0.1;
+
+      if (frameIdxFloat <= 0) return { ...points[0] };
+      if (frameIdxFloat >= totalPoints - 1) return { ...points[totalPoints - 1] };
+
+      const i = Math.floor(frameIdxFloat);
+      const frac = frameIdxFloat - i;
+      const p1 = points[i];
+      const p2 = points[i + 1];
+
+      return {
+        x: p1.x + (p2.x - p1.x) * frac,
+        y: p1.y + (p2.y - p1.y) * frac,
+        s: p1.s + (p2.s - p1.s) * frac,
+        a: p1.a + (p2.a - p1.a) * frac,
+        dir: p1.dir,
+        dis: p1.dis
+      };
+    }
+
+    // Animation Loop
+    function animationLoop(timestamp) {
+      if (!lastTimestamp) lastTimestamp = timestamp;
+      const deltaSec = (timestamp - lastTimestamp) / 1000;
+      lastTimestamp = timestamp;
+
+      if (isPlaying && currentRouteData && totalDurationSec > 0) {
+        if (animElapsedSec < totalDurationSec) {
+          animElapsedSec += deltaSec * animSpeed;
+          if (animElapsedSec > totalDurationSec) {
+            animElapsedSec = totalDurationSec;
+            loopPauseTimer = LOOP_PAUSE_DURATION; // pause at finish line
+          }
+        } else if (loopPauseTimer > 0) {
+          loopPauseTimer -= deltaSec * animSpeed;
+        } else {
+          // Loop continuously
+          animElapsedSec = 0;
+        }
+
+        // Update scrubber & time display
+        const progress = Math.min(animElapsedSec / totalDurationSec, 1.0);
+        document.getElementById('anim-scrubber').value = Math.round(progress * 1000);
+        document.getElementById('anim-time-display').textContent =
+          `${animElapsedSec.toFixed(1)}s / ${totalDurationSec.toFixed(1)}s`;
+      }
+
+      render();
+      requestAnimationFrame(animationLoop);
+    }
+
+    // Draw an authentic American football symbol with pointed tips, leather fill, white stripes, and laces
+    function drawFootball(ctx, x, y, size = 12, angle = -0.35) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate(angle);
+
+      // Glowing aura
+      ctx.beginPath();
+      ctx.ellipse(0, 0, size * 1.5, size * 1.0, 0, 0, Math.PI * 2);
+      ctx.fillStyle = 'rgba(251, 146, 60, 0.35)';
+      ctx.fill();
+
+      // Prolate spheroid football body (pointed oval with sharp tips)
+      const w = size * 1.45;
+      const h = size * 0.85;
+      ctx.beginPath();
+      ctx.moveTo(-w, 0);
+      ctx.quadraticCurveTo(-w * 0.45, -h, 0, -h);
+      ctx.quadraticCurveTo(w * 0.45, -h, w, 0);
+      ctx.quadraticCurveTo(w * 0.45, h, 0, h);
+      ctx.quadraticCurveTo(-w * 0.45, h, -w, 0);
+      ctx.closePath();
+
+      // Deep rich football leather pigskin brown
+      ctx.fillStyle = '#652d0a';
+      ctx.fill();
+      ctx.lineWidth = 1.8;
+      ctx.strokeStyle = '#ffffff';
+      ctx.stroke();
+
+      // White collegiate / pro end stripes
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1.5;
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.58, -h * 0.68);
+      ctx.lineTo(-w * 0.58, h * 0.68);
+      ctx.moveTo(w * 0.58, -h * 0.68);
+      ctx.lineTo(w * 0.58, h * 0.68);
+      ctx.stroke();
+
+      // White center lace spine
+      ctx.beginPath();
+      ctx.moveTo(-w * 0.35, 0);
+      ctx.lineTo(w * 0.35, 0);
+      ctx.lineWidth = 1.8;
+      ctx.stroke();
+
+      // White cross-stitch laces
+      const laces = [-w * 0.22, -w * 0.07, w * 0.07, w * 0.22];
+      laces.forEach(lx => {
+        ctx.beginPath();
+        ctx.moveTo(lx, -3.5);
+        ctx.lineTo(lx, 3.5);
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+      });
+
+      ctx.restore();
+    }
+
+    function render() {
+      if (!currentRouteData || !currentRouteData.points) {
+        renderEmptyField();
+        return;
+      }
+
+      const playerPoints = currentRouteData.playerPoints || [];
+      const ballPoints = currentRouteData.ballPoints || [];
+
+      // Always zoom directly to the route bounding box (encompassing both player and ball)
+      const bounds = computeBounds(playerPoints, ballPoints, 6.0);
+
+      const w = canvas.width;
+      const h = canvas.height;
+
+      // Coordinate transforms
+      const scaleX = w / (bounds.xMax - bounds.xMin);
+      const scaleY = h / (bounds.yMax - bounds.yMin);
+      const toScreenX = (x) => (x - bounds.xMin) * scaleX;
+      const toScreenY = (y) => h - (y - bounds.yMin) * scaleY;
+
+      // 1. Draw Football Turf Background
+      ctx.fillStyle = '#1b4d27';
+      ctx.fillRect(0, 0, w, h);
+
+      // 5-yard lawn mowing stripes
+      const startStripe = Math.floor(bounds.xMin / 5) * 5;
+      const endStripe = Math.ceil(bounds.xMax / 5) * 5;
+      for (let x = startStripe; x <= endStripe; x += 5) {
+        if ((Math.floor(x / 5)) % 2 === 1) {
+          ctx.fillStyle = '#225e31';
+          const sx1 = toScreenX(x);
+          const sx2 = toScreenX(x + 5);
+          ctx.fillRect(sx1, 0, sx2 - sx1, h);
+        }
+      }
+
+      // Endzones (0-10, 110-120)
+      ctx.fillStyle = '#13381c';
+      if (bounds.xMin < 10) {
+        ctx.fillRect(toScreenX(0), 0, toScreenX(10) - toScreenX(0), h);
+      }
+      if (bounds.xMax > 110) {
+        ctx.fillRect(toScreenX(110), 0, toScreenX(120) - toScreenX(110), h);
+      }
+
+      // 2. Field Markings: 5-yard & 10-yard lines
+      for (let x = startStripe; x <= endStripe; x += 5) {
+        if (x >= 0 && x <= 120) {
+          ctx.beginPath();
+          const sx = toScreenX(x);
+          ctx.moveTo(sx, 0);
+          ctx.lineTo(sx, h);
+
+          if (x === 10 || x === 110) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.lineWidth = 3;
+          } else if (x % 10 === 0) {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.75)';
+            ctx.lineWidth = 1.8;
+          } else {
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+            ctx.lineWidth = 0.9;
+          }
+          ctx.stroke();
+        }
+      }
+
+      // Sidelines
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, toScreenY(0));
+      ctx.lineTo(w, toScreenY(0));
+      ctx.moveTo(0, toScreenY(53.33));
+      ctx.lineTo(w, toScreenY(53.33));
+      ctx.stroke();
+
+      // Hash marks (y = 23.366 and 29.966)
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+      ctx.lineWidth = 1;
+      const startYard = Math.max(1, Math.floor(bounds.xMin));
+      const endYard = Math.min(119, Math.ceil(bounds.xMax));
+      for (let x = startYard; x <= endYard; x++) {
+        if (x % 5 !== 0) {
+          const sx = toScreenX(x);
+          ctx.beginPath();
+          ctx.moveTo(sx, toScreenY(23.1));
+          ctx.lineTo(sx, toScreenY(23.6));
+          ctx.moveTo(sx, toScreenY(29.7));
+          ctx.lineTo(sx, toScreenY(30.2));
+          ctx.stroke();
+        }
+      }
+
+      // Yard numbers
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+      ctx.font = 'bold 13px monospace';
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      for (let x = 20; x <= 100; x += 10) {
+        if (x >= bounds.xMin - 2 && x <= bounds.xMax + 2) {
+          const num = x <= 60 ? (x - 10) : (120 - x - 10);
+          const sx = toScreenX(x);
+          ctx.fillText(String(num), sx, toScreenY(7));
+          ctx.fillText(String(num), sx, toScreenY(46.33));
+        }
+      }
+
+      // 3. Draw Ball Route (ALWAYS drawn if present!)
+      if (ballPoints.length > 0) {
+        ctx.beginPath();
+        ballPoints.forEach((p, idx) => {
+          const sx = toScreenX(p.x);
+          const sy = toScreenY(p.y);
+          if (idx === 0) ctx.moveTo(sx, sy);
+          else ctx.lineTo(sx, sy);
+        });
+        ctx.strokeStyle = '#fb923c';
+        ctx.lineWidth = 2.6;
+        ctx.setLineDash([7, 4]);
+        ctx.stroke();
+        ctx.setLineDash([]);
+
+        // Ball Start & End Football Symbols
+        const bStart = ballPoints[0];
+        const bEnd = ballPoints[ballPoints.length - 1];
+        drawFootball(ctx, toScreenX(bStart.x), toScreenY(bStart.y), 8, -0.35);
+        drawFootball(ctx, toScreenX(bEnd.x), toScreenY(bEnd.y), 11, -0.35);
+      }
+
+      // 4. Draw Player Static Route (White line on green background)
+      if (playerPoints.length > 0) {
+        ctx.beginPath();
+        playerPoints.forEach((p, idx) => {
+          const sx = toScreenX(p.x);
+          const sy = toScreenY(p.y);
+          if (idx === 0) ctx.moveTo(sx, sy);
+          else ctx.lineTo(sx, sy);
+        });
+        ctx.strokeStyle = '#ffffff';
+        ctx.lineWidth = 3.2;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.stroke();
+
+        // Start Marker (Green circle)
+        const startP = playerPoints[0];
+        const startSx = toScreenX(startP.x);
+        const startSy = toScreenY(startP.y);
+        ctx.beginPath();
+        ctx.arc(startSx, startSy, 8, 0, Math.PI * 2);
+        ctx.fillStyle = '#22c55e';
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+
+        // Finish Marker (Red circle)
+        const endP = playerPoints[playerPoints.length - 1];
+        const endSx = toScreenX(endP.x);
+        const endSy = toScreenY(endP.y);
+        ctx.beginPath();
+        ctx.arc(endSx, endSy, 8, 0, Math.PI * 2);
+        ctx.fillStyle = '#ef4444';
+        ctx.fill();
+        ctx.lineWidth = 2;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+      }
+
+      // 5. ANIMATED REAL-TIME PLAYER CIRCLE (Repeating continuously!)
+      const curPlayer = interpolatePosition(playerPoints, animElapsedSec);
+      if (curPlayer) {
+        const px = toScreenX(curPlayer.x);
+        const py = toScreenY(curPlayer.y);
+
+        // Outer glowing pulse ring
+        ctx.beginPath();
+        ctx.arc(px, py, 15, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.25)';
+        ctx.fill();
+
+        // Core Player Circle
+        ctx.beginPath();
+        ctx.arc(px, py, 9, 0, Math.PI * 2);
+        ctx.fillStyle = '#0284c7';
+        ctx.fill();
+        ctx.lineWidth = 2.5;
+        ctx.strokeStyle = '#ffffff';
+        ctx.stroke();
+
+        // Player icon label
+        ctx.fillStyle = '#ffffff';
+        ctx.font = 'bold 9px sans-serif';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        ctx.fillText('P', px, py);
+
+        // Update live HUD
+        const curMph = (curPlayer.s * 2.04545).toFixed(1);
+        document.getElementById('hud-speed').textContent = `Speed: ${curPlayer.s.toFixed(1)} yd/s (${curMph} mph)`;
+        document.getElementById('hud-accel').textContent = `Accel: ${curPlayer.a.toFixed(1)} yd/s²`;
+      }
+
+      // 6. ANIMATED REAL-TIME BALL (Authentic Football Symbol flying in real time)
+      if (ballPoints.length > 0) {
+        const curBall = interpolatePosition(ballPoints, animElapsedSec);
+        if (curBall) {
+          const bx = toScreenX(curBall.x);
+          const by = toScreenY(curBall.y);
+          // Angle of flight
+          const flightAngle = (curBall.dir !== undefined) ? (-curBall.dir * Math.PI / 180 + Math.PI / 2) : -0.35;
+          drawFootball(ctx, bx, by, 12, flightAngle);
+        }
+      }
+
+      // 7. Hover Reticle
+      if (hoveredPoint) {
+        const hx = toScreenX(hoveredPoint.x);
+        const hy = toScreenY(hoveredPoint.y);
+        ctx.beginPath();
+        ctx.arc(hx, hy, 10, 0, Math.PI * 2);
+        ctx.strokeStyle = '#f59e0b';
+        ctx.lineWidth = 2;
+        ctx.stroke();
+      }
+    }
+
+    // Hover tooltip inspection
+    canvas.addEventListener('mousemove', (e) => {
+      if (!currentRouteData || !currentRouteData.points) return;
+      const rect = canvas.getBoundingClientRect();
+      const mouseX = (e.clientX - rect.left) * (canvas.width / rect.width);
+      const mouseY = (e.clientY - rect.top) * (canvas.height / rect.height);
+
+      const allPoints = currentRouteData.points;
+      const bounds = computeBounds(currentRouteData.playerPoints, currentRouteData.ballPoints, 6.0);
+
+      const scaleX = canvas.width / (bounds.xMax - bounds.xMin);
+      const scaleY = canvas.height / (bounds.yMax - bounds.yMin);
+      const toScreenX = (x) => (x - bounds.xMin) * scaleX;
+      const toScreenY = (y) => canvas.height - (y - bounds.yMin) * scaleY;
+
+      let closest = null;
+      let minDis = 25; // pixel threshold
+
+      allPoints.forEach((p, idx) => {
+        const sx = toScreenX(p.x);
+        const sy = toScreenY(p.y);
+        const dist = Math.hypot(mouseX - sx, mouseY - sy);
+        if (dist < minDis) {
+          minDis = dist;
+          closest = { ...p, index: idx, sx, sy };
+        }
+      });
+
+      hoveredPoint = closest;
+
+      if (closest) {
+        const mph = (closest.s * 2.04545).toFixed(1);
+        const isBall = closest.e === 'BALL';
+        tooltip.innerHTML = `
+          <strong>${isBall ? '🏈 Ball Frame' : 'Player Frame'} #${closest.index + 1}</strong><br>
+          Pos: <strong>X: ${closest.x.toFixed(2)} yd</strong>, <strong>Y: ${closest.y.toFixed(2)} yd</strong><br>
+          Speed: <strong>${closest.s.toFixed(2)} yd/s</strong> (${mph} mph)<br>
+          Accel: <strong>${closest.a.toFixed(2)} yd/s²</strong> | Dir: <strong>${closest.dir.toFixed(1)}°</strong>
+        `;
+        tooltip.style.display = 'block';
+        tooltip.style.left = `${Math.min(e.clientX - rect.left + 15, rect.width - 200)}px`;
+        tooltip.style.top = `${Math.min(e.clientY - rect.top + 15, rect.height - 90)}px`;
+      } else {
+        tooltip.style.display = 'none';
+      }
+    });
+
+    canvas.addEventListener('mouseleave', () => {
+      hoveredPoint = null;
+      tooltip.style.display = 'none';
+    });
+
+    // Scrubber interaction
+    const scrubber = document.getElementById('anim-scrubber');
+    scrubber.addEventListener('input', (e) => {
+      if (totalDurationSec > 0) {
+        animElapsedSec = (e.target.value / 1000) * totalDurationSec;
+        loopPauseTimer = 0;
+      }
+    });
+
+    // Playback Controls
+    const btnPlayPause = document.getElementById('btn-play-pause');
+    btnPlayPause.addEventListener('click', () => {
+      isPlaying = !isPlaying;
+      btnPlayPause.textContent = isPlaying ? '⏸ Pause' : '▶ Play';
+      btnPlayPause.classList.toggle('btn-primary', isPlaying);
+    });
+
+    document.getElementById('btn-restart').addEventListener('click', () => {
+      animElapsedSec = 0;
+      loopPauseTimer = 0;
+      if (!isPlaying) {
+        isPlaying = true;
+        btnPlayPause.textContent = '⏸ Pause';
+        btnPlayPause.classList.add('btn-primary');
+      }
+    });
+
+    // Speed buttons
+    document.querySelectorAll('.btn-speed').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.btn-speed').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        animSpeed = parseFloat(btn.dataset.speed);
+      });
+    });
+
+    // Event Listeners for Filters
+    document.getElementById('filter-year').addEventListener('change', loadEvents);
+    document.getElementById('filter-drill-type').addEventListener('change', () => {
+      updateDrillNames();
+      loadEvents();
+    });
+    document.getElementById('filter-drill-name').addEventListener('change', loadEvents);
+    document.getElementById('filter-player').addEventListener('change', loadEvents);
+    document.getElementById('filter-attempt').addEventListener('change', loadEvents);
+    document.getElementById('filter-only-ball').addEventListener('change', () => {
+      updateDrillNames();
+      loadEvents();
+    });
+
+    // Navigation Buttons
+    document.getElementById('btn-prev').addEventListener('click', () => {
+      if (currentEventIndex > 0) {
+        currentEventIndex--;
+        updateNavDisplay();
+        loadCurrentRoute();
+      }
+    });
+
+    document.getElementById('btn-next').addEventListener('click', () => {
+      if (currentEventIndex < events.length - 1) {
+        currentEventIndex++;
+        updateNavDisplay();
+        loadCurrentRoute();
+      }
+    });
+
+    document.getElementById('btn-random').addEventListener('click', () => {
+      if (events.length > 0) {
+        currentEventIndex = Math.floor(Math.random() * events.length);
+        updateNavDisplay();
+        loadCurrentRoute();
+      }
+    });
+
+    document.getElementById('btn-export-png').addEventListener('click', () => {
+      if (!currentRouteData) return;
+      const link = document.createElement('a');
+      link.download = `route_${currentRouteData.drill_name}_attempt${currentRouteData.attempt}_${currentRouteData.nfl_id}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+    });
+
+    // Keyboard navigation
+    window.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+      if (e.key === 'ArrowLeft') {
+        document.getElementById('btn-prev').click();
+      } else if (e.key === 'ArrowRight') {
+        document.getElementById('btn-next').click();
+      } else if (e.key === ' ' || e.code === 'Space') {
+        e.preventDefault();
+        btnPlayPause.click();
+      } else if (e.key === 'r' || e.key === 'R') {
+        document.getElementById('btn-random').click();
+      }
+    });
+
+    init();
+  </script>
+</body>
+</html>
