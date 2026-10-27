@@ -16,6 +16,9 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+data = [
+    "kaggle",
+]
 dev = [
     "pytest",
     "pytest-cov",
@@ -25,12 +28,18 @@ dev = [
     "nbstripout",
 ]
 
+[project.scripts]
+download-data = "databowl.download:main"
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-ra --cov=databowl --cov-report=term-missing"
+markers = [
+    "data: needs the real Kaggle data in data/raw (auto-skipped if not downloaded)",
+]
 
 [tool.ruff]
 line-length = 100

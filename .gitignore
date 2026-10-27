@@ -31,3 +31,8 @@ models/
 # Secrets / OS
 .env
 .DS_Store
+
+# Kaggle
+kaggle.json
+.kaggle/
+*.zip

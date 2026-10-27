@@ -11,6 +11,18 @@ python -m venv .venv && source .venv/bin/activate
 make install
 ```
 
+## Getting the data
+
+Data comes from the [NFL Big Data Bowl 2027](https://www.kaggle.com/competitions/nfl-big-data-bowl-2027/data)
+Kaggle competition.
+
+1. Join the competition and accept its rules on kaggle.com.
+2. Create an API token at https://www.kaggle.com/settings/api, then follow the instructions to save it locally.
+3. Run `make data`. It downloads into `data/raw/` and is a no-op if data is already there.
+
+Tests marked `@pytest.mark.data` need the real data and are skipped automatically
+when it isn't present.
+
 ## Common commands
 
 | Command       | What it does                      |
